@@ -1,0 +1,19 @@
+[package]
+name = "comppiler"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+dotenv = "0.15.0"
+grass = "0.13.1"
+regex = "1.9.1"
+run_script = "0.10.1"
+
+[dependencies.uuid]
+version = "1.4.1"
+features = [
+    "v4",
+    "v7",
+]

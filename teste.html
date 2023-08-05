@@ -1,0 +1,67 @@
+<template>
+    <h3 @pointerdown="run">Isto é  título {{ teste2 }}</h3>
+    <h1>Teste</h1>
+    <h2>Subteste</h2>
+    <span>Ok funciona <div class="a">asd <span style="all: unset"> this should be inline </span> asd</div></span>
+    <div id="div-parent" v-show="1 + 1 === 2" class="purple">
+        <h1>Isto é <div class="bold">um</div> título {{ teste.val }}</h1>
+    </div>
+    <button @click="count.count += 1">Count: {{ count.count }}</button>
+    <div class="over" @pointermove="hoverF(1)">number of hovers: {{ hover }}</div>
+    <div class="teste" v-show="hover.value > count.count">asd</div>
+</template>
+
+<script>
+    let text = "typed val";
+
+    const teste2 = ref("valor 1");
+
+    const teste = ref({
+        val: 1,
+        "teste": 123
+    });
+
+    const count = ref({count: 0});
+    const hover = ref(0);
+
+    function hoverF(n) {
+        hover.value += 1;
+    }
+
+    count.onNextUpdate(() => {
+        console.log("current count: " + count.count);
+    })
+
+    let a = 1;
+    
+    setInterval(() => {        
+        teste.val += 1; 
+    }, 1000); 
+
+
+</script>
+
+<style>
+    h1 {
+        color: red;
+    }
+
+    span {
+        display: block;
+    }
+
+    #div-parent {
+        display: block;
+        padding: 20px;
+        background: pink;
+
+        h1 {
+            color: blue;
+
+            .bold {
+                font-weight: bolder;
+                display: inline-block;
+            }
+        }
+    }
+</style>
