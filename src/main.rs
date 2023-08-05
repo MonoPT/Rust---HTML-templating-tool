@@ -1,71 +1,89 @@
-mod utils {
-    pub mod regex;
-    pub mod io;
-    pub mod transpile;
+mod templating;
+use templating::generate_component;
+
+use std::env;
+use std::path::Path;
+
+use std::sync::{Arc, Mutex};
+
+use notify::{Watcher, RecursiveMode, Result, Event};
+
+fn main() -> Result<()> {
+    //let folder_watch = "./components";
+
+    let files_being_edited: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(vec![]));
+        
+    let mut folder_watch = "./components".to_string();
+
+    if let Some(arg1) = env::args().nth(1) {
+        folder_watch = arg1;
+    }
+
+    let f = folder_watch.clone();
+    let mut output_folder = "./.output".to_string();
+
+    if let Some(arg2) = env::args().nth(2) {
+        output_folder = arg2;
+    }
+
+    // Automatically select the best implementation for your platform.
+    let mut watcher = notify::recommended_watcher(move |res| {
+        //let files_being_edited_clone = files_being_edited.clone();
+        match res {
+           Ok(event) => {
+            
+            watch_changes(event, &f, files_being_edited.clone(), output_folder.clone())
+           },
+           Err(e) => println!("watch error: {:?}", e),
+        }
+    })?;
+
+    // Add a path to be watched. All files and directories at that path and
+    // below will be monitored for changes.
+    watcher.watch(Path::new(&folder_watch), RecursiveMode::Recursive)?;
+
+    loop {}
 }
 
-use regex::Regex;
 
-use grass;
+fn watch_changes(event: Event, folder: &str, files_being_edited: Arc<Mutex<Vec<String>>>, output_folder: String) {
+    let mut current_path = std::env::current_dir().unwrap().as_path().to_str().unwrap().to_string();
+    current_path += folder;
 
-use utils::regex::{match_tag, handle_refs, handle_template_refs, handle_events, handle_visibility};
-use utils::io::{read_file_as_string, create_and_save_file};
-use utils::transpile::transpile_typescript;
+    match event.clone().kind {
+        notify::event::EventKind::Modify(_) => {},
+        _ => return,
+    }
 
-/* */
-fn main() -> Result<(), Box<grass::Error>> {
-    
-    //Read file as string
-    let file = read_file_as_string("./teste.html");
-    let component_template = read_file_as_string("./templates/component.js");
+    for path in event.clone().paths {
+        let f_path = path.as_path().to_str().unwrap();
 
-    let mut template = match_tag("template", &file);
-    let mut javascript = transpile_typescript(&match_tag("script", &file));
-    let style = grass::from_string(
-        match_tag("style", &file).to_owned(),
-        &grass::Options::default()
-    )?;
+        let n = current_path.len() + 2;
+        let file_path = &f_path[n..];
+        
+        let mut fs = files_being_edited.lock().unwrap();
 
-    // handle reacticity
-    let js_vars = handle_refs(&mut javascript);
-    
-    handle_template_refs(&mut template, &js_vars);
+        match fs.iter().find(|f| *f == file_path) {
+            None => {
+                fs.push(file_path.to_string());
 
-    handle_events(&mut template, &mut javascript);
+                let name = Path::new(&file_path).with_extension("");
+                let name_str = name.to_string_lossy().to_string();
+                let split_parts: Vec<_> = name_str.split('\\').map(String::from).collect();
 
-    handle_visibility(&mut template, &mut javascript);
+                let output_path = &format!("{}", split_parts.join("-")); //find output name
 
+                match generate_component(&format!("{}/{}", folder, file_path), &format!("{}/{}.js",output_folder, output_path), &format!("WC-{}", output_path)) {
+                    _ => {
+                        
+                        let pos = fs.iter().position(|f| *f == file_path).unwrap_or_default();
 
+                        fs.remove(pos);
 
-
-
-    
-
-    //
-    //Recreate js web component
-    //
-
-    // add styles to template
-    template += &format!("<style>{}</style>", style);
-
-    // add html and css to template
-    let pattern = Regex::new(r"/\*--ShadowDom--\*/").unwrap();
-    let replaced_text = pattern.replace(&component_template, format!(";this.shadow.innerHTML = `{}`;", template));
-
-    // add js to template
-    let pattern = Regex::new(r"/\*--Component Script--\*/").unwrap();
-    let replaced_text = pattern.replace(&replaced_text, format!(";{};", javascript));
-
-    // Create the file and open it for writing
-    match create_and_save_file("./web/src/component.js", &replaced_text) {
-        Ok(()) => {
-            println!("File generated sucessfully");
-        },
-        Err(err) => {
-            println!("An Error has ocurred: {}", err);
+                    }
+                }
+            },
+            Some(_) => ()
         }
     }
-    
-
-    Ok(())
 }

@@ -1,5 +1,5 @@
 <template>
-    <h3 @pointerdown="run">Isto é  título {{ teste2 }}</h3>
+    <h3 @pointerup="change_text()">Isto é  título {{ teste2 }}</h3>
     <h1>Teste</h1>
     <h2>Subteste</h2>
     <span>Ok funciona <div class="a">asd <span style="all: unset"> this should be inline </span> asd</div></span>
@@ -10,6 +10,7 @@
     <div class="over" @pointermove="hoverF(1)">number of hovers: {{ hover }}</div>
     <div class="teste" v-show="hover.value > count.count">asd</div>
 </template>
+
 
 <script>
     let text = "typed val";
@@ -31,6 +32,8 @@
     count.onNextUpdate(() => {
         console.log("current count: " + count.count);
     })
+
+    const change_text = () => teste2.value = "clicked";
 
     let a = 1;
     
