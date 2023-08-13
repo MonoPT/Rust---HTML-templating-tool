@@ -5,11 +5,32 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vite + TS</title>
-    <script src="./src/component.js" type="module"></script>
+    <script src="./src/components/modal.js" type="module"></script>
+    <script src="./src/components/login-form.js" type="module"></script>
   </head>
   <body>
-    <my-custom-element></my-custom-element>
-    <div id="app"></div>
+    <style>
+      body {
+        background: #f4f4f4;
+        position: relative;
+        padding: 0;
+        margin: 0;
+        width: 100%;
+        display: grid;
+        min-height: 100vh;
+        place-content: center;
+        place-items: center;
+        box-sizing: border-box;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+        font-weight: lighter;
+      }
+    </style>
+    <wc-modal></wc-modal>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

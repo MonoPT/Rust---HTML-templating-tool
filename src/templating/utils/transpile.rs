@@ -13,6 +13,9 @@ use dotenv::dotenv;
 // Transpile the ts to js using the tsc
 pub fn transpile_typescript(typescript_code: &str) -> String {
     dotenv().ok();
+    println!("Transpiling ts to js");
+
+    let typescript_code = typescript_code.to_string();
 
     // Create the .temp folder if it doesn't exist
     if let Err(err) = fs::create_dir(".temp") {
@@ -58,11 +61,12 @@ pub fn transpile_typescript(typescript_code: &str) -> String {
         println!("Error occurred while compiling TypeScript:");
         println!("stdout: {}", String::from_utf8_lossy(&stdout_buffer));
         println!("stderr: {}", String::from_utf8_lossy(&stderr_buffer));
-    }
+    } 
+
 
     // Remove the temporary file after the TypeScript compilation is done
     if let Err(err) = fs::remove_file(temp_file_path) {
-        eprintln!("Error removing ts temp file: {:?}", err);
+       eprintln!("Error removing ts temp file: {:?}", err);
     }
 
     let output = read_file_as_string(transpiled_file_path);
@@ -70,7 +74,6 @@ pub fn transpile_typescript(typescript_code: &str) -> String {
     if let Err(err) = fs::remove_file(transpiled_file_path) {
         eprintln!("Error removing js temp file: {:?}", err);
     }
-
 
     output
 }

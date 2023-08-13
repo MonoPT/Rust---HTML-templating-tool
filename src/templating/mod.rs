@@ -15,16 +15,28 @@ use utils::transpile::transpile_typescript;
 pub fn generate_component(input: &str, output: &str, component_name: &str) -> Result<(), Box<grass::Error>> {
     
     //Read file as string
-    let file = read_file_as_string(input);
+    let file = input;
     let component_template = read_file_as_string("./templates/component.js");
 
+    //if file.is_empty() {
+    //    return Ok(());
+    //}
+
     let mut template = match_tag("template", &file);
+    println!("{}", template);
+
     let mut javascript = transpile_typescript(&match_tag("script", &file));
     let style = grass::from_string(
         match_tag("style", &file).to_owned(),
         &grass::Options::default()
     )?;
 
+    
+    
+
+    //let mut javascript = transpile_typescript(&match_tag("script", &file));
+
+    
     // handle reacticity
     let js_vars = handle_refs(&mut javascript);
     
@@ -33,6 +45,8 @@ pub fn generate_component(input: &str, output: &str, component_name: &str) -> Re
     handle_events(&mut template, &mut javascript);
 
     handle_visibility(&mut template, &mut javascript);
+
+    
 
     //
     //Recreate js web component

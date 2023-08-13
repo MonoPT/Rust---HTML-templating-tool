@@ -1,20 +1,22 @@
 <template>
     <div id="form-container">
         <div class="wrapper">
-            <h1>Bem-vindo de volta</h1>
-            <p>Lorem ipsdudm dolodddddddddddr sit amet consectetur adipisicing elit. Obcaecati sint fugit reprehenderit.</p>
+            <h1>Bem-vindo de volta, {{ nome }}</h1>
+            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Obcaecati sint fugit reprehenderit.</p>
             <form action="">
-                <span>Enderddedddddço de E-mail</span>
+                <span>Endereço de E-mail</span>
                 <input type="text" placeholder="">
 
                 <span>Palavra-passe</span>
                 <input type="password" name="" id="" placeholder="">
 
-                <div class="group rememberCheckBox" @click="toggleRememberCheckbox()">
-                    <input type="checkbox" style="pointer-events: none;"><span>Manter sessão iniciada</span>
-                </div>
-                <div class="btn-container">
-                    <button>Loddddasdn</button>
+                <div class="group-flex">
+                    <div class="group rememberCheckBox" @click="toggleRememberCheckbox()">
+                        <input type="checkbox" style="pointer-events: none;"><span>Manter sessão iniciada</span>
+                    </div>
+                    <div class="btn-container">
+                        <button>Login</button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -28,6 +30,8 @@
         checkbox.checked = !checkbox.checked;
         
     }
+
+    const nome = ref('Rodrigo');
 </script>
 
 <style>
@@ -42,6 +46,13 @@
             padding-block: .2rem;
             font-size: 1rem;
             color: #757575;
+        }
+
+        .group-flex {
+            display: flex;
+            align-items: center;
+            padding-top: 2rem;
+            place-content: flex-end;
         }
 
         input[type="text"], input[type="password"] {
@@ -64,7 +75,32 @@
 
         .btn-container {
             display: inline-block;
-            width: max-content;
+            margin-left: 2rem;
+
+            button {
+                appearance: none;
+                all: unset;
+                cursor: pointer;
+                background: rgb(214, 117, 255);
+                color: #fff;
+                padding-inline: 1rem;
+                padding-block: .45rem;
+                display: block;
+                border-radius: 1200px;
+                width: max-content;
+                transition: .2s;
+                font-size: 1.2rem;
+
+                &::after {
+                    content: '🡢';
+                    display: inline-block;
+                    padding-left: 2rem;
+                }
+
+                &:hover {
+                    background-color: rgb(226, 157, 255);
+                }
+            }
         }
 
         .group {
@@ -72,8 +108,7 @@
             flex-direction: row;
             align-content: center;
             align-items: center;
-            padding-top: 2rem;
-            width: max-content;
+            
 
             &.rememberCheckBox {
                 cursor: pointer;

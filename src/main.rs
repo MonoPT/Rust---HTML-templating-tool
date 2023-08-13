@@ -1,89 +1,146 @@
+extern crate notify;
+use notify::{RecommendedWatcher, RecursiveMode, Watcher, Config, Event};
+
+use std::sync::{Arc, Mutex};
+use std::sync::mpsc::channel;
+use std::{thread, env};
+use std::time::{Duration, SystemTime};
+use std::path::{Path, PathBuf};
+
 mod templating;
 use templating::generate_component;
 
-use std::env;
-use std::path::Path;
+use std::fs;
 
-use std::sync::{Arc, Mutex};
 
-use notify::{Watcher, RecursiveMode, Result, Event};
 
-fn main() -> Result<()> {
-    //let folder_watch = "./components";
+static supported_ext: [&'static str; 2] = ["html", "vue"];
 
-    let files_being_edited: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(vec![]));
-        
-    let mut folder_watch = "./components".to_string();
+
+#[tokio::main]
+async fn main() {
+    // Defina o diretório que deseja monitorar
+    let mut path_to_watch = "./components".to_string();
+    let mut output_folder = "./.output".to_string();
 
     if let Some(arg1) = env::args().nth(1) {
-        folder_watch = arg1;
+        path_to_watch = arg1;
     }
-
-    let f = folder_watch.clone();
-    let mut output_folder = "./.output".to_string();
 
     if let Some(arg2) = env::args().nth(2) {
         output_folder = arg2;
     }
 
-    // Automatically select the best implementation for your platform.
-    let mut watcher = notify::recommended_watcher(move |res| {
-        //let files_being_edited_clone = files_being_edited.clone();
-        match res {
-           Ok(event) => {
-            
-            watch_changes(event, &f, files_being_edited.clone(), output_folder.clone())
-           },
-           Err(e) => println!("watch error: {:?}", e),
+    let config = Config::default()
+        .with_poll_interval(Duration::from_secs(3))
+        .with_compare_contents(true);
+
+    
+    // Crie um novo watcher (observador)
+    let (tx, rx) = channel();
+    let mut watcher: RecommendedWatcher = Watcher::new(tx, config).unwrap();
+
+    // Registre o diretório para monitoramento recursivo
+    watcher.watch(Path::new(&path_to_watch), RecursiveMode::Recursive).unwrap();
+
+    println!("Aguardando alterações na pasta...");
+
+    let modified_files: Arc<Mutex<Vec<(String, SystemTime)>>> = Arc::new(Mutex::new(vec![]));
+
+    // Loop para receber eventos de notificação
+    loop {
+        match rx.recv() {
+            Ok(event) => {
+                match event {
+                    Err(_) => {}
+                    Ok(event) => {
+                        
+                        if let Some(file_path) = event.paths.get(0).map(PathBuf::as_path) {
+                            let file_path = String::from(Path::new(file_path).to_str().unwrap());
+                            
+                            let mut modified_files = modified_files.lock().unwrap();
+
+                            let mut can_handle_file = true;
+                            let cooldown = 1;
+
+                            if let Some(v) = modified_files.iter().find(|e| e.0 == file_path) {
+                                can_handle_file = false;
+
+
+                                let i = modified_files.iter().position(|s| s.0 == file_path).unwrap();
+                                let t = v.1;
+
+                                match SystemTime::now().duration_since(t) {
+                                    Ok(d) => {
+                                        if d.as_secs() > cooldown {
+                                            modified_files.remove(i); 
+                                        }
+                                    },
+                                    Err(_) => ()
+                                }
+
+                            } 
+
+                            if !can_handle_file {continue;} 
+
+                            let now = SystemTime::now();
+                            
+
+                            modified_files.push((file_path.clone(), now));
+
+                            process_event(event, &path_to_watch, &output_folder);
+
+                        };
+                    } 
+                }
+            }
+            Err(e) => println!("Erro ao receber evento: {:?}", e),
         }
-    })?;
-
-    // Add a path to be watched. All files and directories at that path and
-    // below will be monitored for changes.
-    watcher.watch(Path::new(&folder_watch), RecursiveMode::Recursive)?;
-
-    loop {}
+    }
 }
 
-
-fn watch_changes(event: Event, folder: &str, files_being_edited: Arc<Mutex<Vec<String>>>, output_folder: String) {
-    let mut current_path = std::env::current_dir().unwrap().as_path().to_str().unwrap().to_string();
-    current_path += folder;
-
-    match event.clone().kind {
-        notify::event::EventKind::Modify(_) => {},
-        _ => return,
+// Função para processar o evento do arquivo
+fn process_event(event: Event, component_folder: &str, output_folder: &str) {
+    match event.kind {
+        notify::EventKind::Modify(_) => (),
+        _ => return
     }
 
-    for path in event.clone().paths {
-        let f_path = path.as_path().to_str().unwrap();
+    let current_path = std::env::current_dir().unwrap().as_path().to_str().unwrap().to_string();
+    let path = event.paths.first().unwrap().to_str().unwrap().to_string();
 
-        let n = current_path.len() + 2;
-        let file_path = &f_path[n..];
-        
-        let mut fs = files_being_edited.lock().unwrap();
+    let component_path = Path::new(&path[format!("{}{}", current_path, component_folder).len() + 2..]);
+    let ext = component_path.extension();
+    let component_path = component_path.with_extension("");
 
-        match fs.iter().find(|f| *f == file_path) {
-            None => {
-                fs.push(file_path.to_string());
+    match ext { // Check if ext is supported
+        Some(ext) => {
+            if !supported_ext.contains(&ext.to_str().unwrap()) {
+                return;
+            }
+        }
+        _ => return
+    }
 
-                let name = Path::new(&file_path).with_extension("");
-                let name_str = name.to_string_lossy().to_string();
-                let split_parts: Vec<_> = name_str.split('\\').map(String::from).collect();
+    println!("{}", component_path.to_str().unwrap());
+    
+    let input_file = format!("{}/{}.{}", component_folder, component_path.to_str().unwrap(), ext.unwrap().to_str().unwrap());
 
-                let output_path = &format!("{}", split_parts.join("-")); //find output name
+    let temp: Vec<&str> = component_path.to_str().unwrap().split("\\").collect();
 
-                match generate_component(&format!("{}/{}", folder, file_path), &format!("{}/{}.js",output_folder, output_path), &format!("WC-{}", output_path)) {
-                    _ => {
-                        
-                        let pos = fs.iter().position(|f| *f == file_path).unwrap_or_default();
+    let component_name = String::from("wc-") + &temp.join("-");
 
-                        fs.remove(pos);
+    let temp: String = format!("{}/{}.js", output_folder, component_path.to_str().unwrap());
 
-                    }
-                }
-            },
-            Some(_) => ()
+    let output_path = Path::new(&temp);
+
+    thread::sleep(Duration::from_millis(100));
+
+    // Read the entire contents of the file into the buffer
+    match fs::read_to_string(input_file) {
+        Err(e) => println!("Error reading file: {}", e),
+        Ok(content) => {
+            generate_component(&content, output_path.to_str().unwrap(), &component_name);
         }
     }
 }

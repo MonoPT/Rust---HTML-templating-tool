@@ -2,8 +2,12 @@ export function ref(value: any, id: string, scope: HTMLElement) {
   const target = handle_values(value)
 
   if (!id) {
-    id = generateUuid()
+    id = generateUuid();
   }
+
+  const ids: string[] = [];
+
+  ids.push(id);
 
   
   const onUpdateFunctions: Function[] = [];
@@ -28,7 +32,7 @@ export function ref(value: any, id: string, scope: HTMLElement) {
     set: function(obj, prop, value) {
       //@ts-ignore
       let r = Reflect.set(...arguments)
-      UpdateValuesOnScreen(id as string, target, onUpdateFunctions, scope, HtmlElementsToUpdate)
+      UpdateValuesOnScreen(ids, target, onUpdateFunctions, scope, HtmlElementsToUpdate)
             
       return r
     }
@@ -57,13 +61,23 @@ export function ref(value: any, id: string, scope: HTMLElement) {
     HtmlElementsToUpdate.add(Element);
   }
 
-  UpdateValuesOnScreen(id, target, onUpdateFunctions, scope, HtmlElementsToUpdate);
+  UpdateValuesOnScreen(ids, target, onUpdateFunctions, scope, HtmlElementsToUpdate);
 
   return proxy
 }
 
-function UpdateValuesOnScreen(id: string, value: any, onUpdateFunctions: Function[], scope: HTMLElement, HtmlElementsToUpdate: any) {
+function UpdateValuesOnScreen(ids: string[], value: any, onUpdateFunctions: Function[], scope: HTMLElement, HtmlElementsToUpdate: any) {
   let document = scope.shadowRoot as ShadowRoot;
+
+  let id = "";
+
+  ids.forEach(currentID => {
+    if (id != ids[0]) {
+      id += `, .reactive-el-${currentID}`;
+    } else {
+      id += `.reactive-el-${currentID}`
+    }    
+  });
 
 
   let elements = document.querySelectorAll(`.reactive-el-${id}`)

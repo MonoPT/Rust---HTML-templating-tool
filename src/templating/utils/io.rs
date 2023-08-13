@@ -31,7 +31,9 @@ pub fn read_file_as_string(path: &str) -> String {
         Ok(contents) => {
             string_file = contents;
         }
-        Err(_e) => ()
+        Err(e) => {
+            println!("Erro: {}", e)
+        }
     }
 
     string_file
