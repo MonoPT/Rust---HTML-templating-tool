@@ -1,4 +1,4 @@
-import { ref } from "./reactive-framework.ts";
+import { ref, createStore, getStore } from "./reactive-framework.ts";
 
 class MyCustomElement extends HTMLElement {
     constructor() {
@@ -10,9 +10,9 @@ class MyCustomElement extends HTMLElement {
         ;this.shadow.innerHTML = `
     <div id="form-container">
         <div class="wrapper">
-            <h1>Bem-vindo de volta,  <span style='all: unset' class='reactive-el-11d2b2d7-b06d-4d22-bfdf-ba25cb94ed65' dynproperty='value'>{  nome  }</span> </h1>
+            <h1>Bem-vindo de volta,  <span style='all: unset' class='reactive-el-f141dc0d-24e5-4a60-b99e-59b5a65ac6a5' dynproperty='value'>{  nome  }</span> </h1>
             <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Obcaecati sint fugit reprehenderit.</p>
-            <form action="">
+            <form action="" onsubmit="event.preventDefault()">
                 <span>Endereço de E-mail</span>
                 <input type="text" placeholder="">
 
@@ -20,14 +20,15 @@ class MyCustomElement extends HTMLElement {
                 <input type="password" name="" id="" placeholder="">
 
                 <div class="group-flex">
-                    <div class=' group rememberCheckBox reactive-event-8b9359a0-172f-4485-8c5d-31b592392ebb'    >
+                    <div class=' group rememberCheckBox reactive-event-f431f6d3-c046-46c6-9a22-7a981062cb4d'    >
                         <input type="checkbox" style="pointer-events: none;"><span>Manter sessão iniciada</span>
                     </div>
                     <div class="btn-container">
-                        <button>Login</button>
+                        <button class=' reactive-event-f41445bb-a867-4b7e-baf4-4fed4af52917'  >Login</button>
                     </div>
                 </div>
             </form>
+            
         </div>
     </div>
 <style>@charset "UTF-8";
@@ -164,14 +165,18 @@ p {
     }
 
     connectedCallback() {
-        let document = this.shadow; /*Scopes document object to component */
+        const document = this.shadow; /*Scopes document object to component */
+        const document_fragment_RL_M_ = this;
 
         ;var toggleRememberCheckbox = function () {
     var checkbox = document.querySelector(".rememberCheckBox input[type='checkbox']");
     checkbox.checked = !checkbox.checked;
 };
- var nome = ref('Rodrigo', '11d2b2d7-b06d-4d22-bfdf-ba25cb94ed65', this) ;
-if(document.contains(document.querySelector('.reactive-event-8b9359a0-172f-4485-8c5d-31b592392ebb'))) { document.querySelector('.reactive-event-8b9359a0-172f-4485-8c5d-31b592392ebb').addEventListener('click', function() { toggleRememberCheckbox(); } ) };
+var fakeLogin = function () {
+    nome.value = "Rodrigo";
+};
+ var nome = getStore("userName", 'f141dc0d-24e5-4a60-b99e-59b5a65ac6a5', document_fragment_RL_M_) ;
+if(document.contains(document.querySelector('.reactive-event-f41445bb-a867-4b7e-baf4-4fed4af52917'))) { document.querySelector('.reactive-event-f41445bb-a867-4b7e-baf4-4fed4af52917').addEventListener('click', function() { fakeLogin(); } ) }if(document.contains(document.querySelector('.reactive-event-f431f6d3-c046-46c6-9a22-7a981062cb4d'))) { document.querySelector('.reactive-event-f431f6d3-c046-46c6-9a22-7a981062cb4d').addEventListener('click', function() { toggleRememberCheckbox(); } ) };
     }
 }
 

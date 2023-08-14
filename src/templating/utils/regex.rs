@@ -39,10 +39,10 @@ pub struct Variables {
 }
 
 // locate all ref() in js
-fn find_refs(string: &str) -> Vec<Refs> {
+fn find_refs(string: &str, ref_to_find: &str) -> Vec<Refs> {
     let mut refs: Vec<Refs> = vec![];
 
-    let padrao = r"\b(let|cons|var)\s+(\w+)\s*=\s*ref\(([^)]+)\)";
+    let padrao = &format!(r"\b(let|cons|var)\s+(\w+)\s*=\s*{}\(([^)]+)\)", ref_to_find);
 
     let regex = Regex::new(padrao).unwrap();
 
@@ -67,10 +67,10 @@ fn find_refs(string: &str) -> Vec<Refs> {
 }
 
 
-pub fn handle_refs(string: &mut String) -> Vec<Variables> {
+pub fn handle_refs(string: &mut String, ref_to_find: &str) -> Vec<Variables> {
     let mut vars: Vec<Variables> = vec![];
 
-    let mut refs = find_refs(string);
+    let mut refs = find_refs(string, &ref_to_find);
     refs.reverse();
 
     for item in refs.clone() {
@@ -78,12 +78,18 @@ pub fn handle_refs(string: &mut String) -> Vec<Variables> {
 
         let prefix = &string[..item.start_index];
         let suffix = &string[item.end_index..];
+         
+        let new_var = format!("{} {} = {}({}, '{}', document_fragment_RL_M_)", item.var_type, item.var_name, ref_to_find, item.value, item.uuid);
+
+        //if ref_to_find == "ref" {
+        //    let new_var = format!("{} {} = {}({}, '{}', this)", item.var_type, item.var_name, ref_to_find, item.value, item.uuid);
+        //}
         
-        let new_var = format!("{} {} = ref({}, '{}', this)", item.var_type, item.var_name, item.value, item.uuid);
+
+
 
         *string = format!("{} {} {}", prefix, new_var, suffix);
     }
-
 
     vars
 }

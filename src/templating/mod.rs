@@ -38,7 +38,10 @@ pub fn generate_component(input: &str, output: &str, component_name: &str) -> Re
 
     
     // handle reacticity
-    let js_vars = handle_refs(&mut javascript);
+    let mut js_vars = handle_refs(&mut javascript, "ref");
+    let mut js_vars_stores = handle_refs(&mut javascript, "getStore");
+
+    js_vars.append(&mut js_vars_stores);
     
     handle_template_refs(&mut template, &js_vars);
 

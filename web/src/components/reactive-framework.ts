@@ -1,14 +1,21 @@
-export function ref(value: any, id: string, scope: HTMLElement) {
+type id_type= {id: string, scope: ShadowRoot};
+
+
+export function ref(value: any, id?: string, scope?: HTMLElement) {
   const target = handle_values(value)
 
   if (!id) {
     id = generateUuid();
   }
 
-  const ids: string[] = [];
+  const ids: id_type[] = [];
 
-  ids.push(id);
-
+  if (id && scope) {
+    ids.push({
+      id,
+      scope: scope.shadowRoot as ShadowRoot
+    });
+  }
   
   const onUpdateFunctions: Function[] = [];
 
@@ -32,7 +39,7 @@ export function ref(value: any, id: string, scope: HTMLElement) {
     set: function(obj, prop, value) {
       //@ts-ignore
       let r = Reflect.set(...arguments)
-      UpdateValuesOnScreen(ids, target, onUpdateFunctions, scope, HtmlElementsToUpdate)
+      UpdateValuesOnScreen(ids, target, onUpdateFunctions, HtmlElementsToUpdate)
             
       return r
     }
@@ -61,27 +68,31 @@ export function ref(value: any, id: string, scope: HTMLElement) {
     HtmlElementsToUpdate.add(Element);
   }
 
-  UpdateValuesOnScreen(ids, target, onUpdateFunctions, scope, HtmlElementsToUpdate);
+  proxy.add_element_id_to_update = function(id: string, scope: HTMLElement) {
+    ids.push({
+      id,
+      scope: scope.shadowRoot as ShadowRoot
+    });
+  }
+
+  proxy.force_update = () => UpdateValuesOnScreen(ids, target, onUpdateFunctions, HtmlElementsToUpdate);
+
+  UpdateValuesOnScreen(ids, target, onUpdateFunctions, HtmlElementsToUpdate);
 
   return proxy
 }
 
-function UpdateValuesOnScreen(ids: string[], value: any, onUpdateFunctions: Function[], scope: HTMLElement, HtmlElementsToUpdate: any) {
-  let document = scope.shadowRoot as ShadowRoot;
+function UpdateValuesOnScreen(ids: id_type[], value: any, onUpdateFunctions: Function[], HtmlElementsToUpdate: any) {
+  let elements: Element[] = [];
 
-  let id = "";
-
-  ids.forEach(currentID => {
-    if (id != ids[0]) {
-      id += `, .reactive-el-${currentID}`;
-    } else {
-      id += `.reactive-el-${currentID}`
-    }    
+  ids.forEach(element => {
+    let document = element.scope;
+    
+    let els = Array.from(document.querySelectorAll(`.reactive-el-${element.id}`));
+    elements = [...elements, ...els];
   });
 
 
-  let elements = document.querySelectorAll(`.reactive-el-${id}`)
-  
   elements.forEach(element => {
     let property = element.getAttribute('dynproperty')?.trim() as string
 
@@ -104,10 +115,17 @@ function UpdateValuesOnScreen(ids: string[], value: any, onUpdateFunctions: Func
       element.textContent = JSON.stringify(value)      
     } finally {
       (HtmlElementsToUpdate as HTMLElement[]).forEach(element => {
-        if(document.contains(element)) {
-          //@ts-ignore
-          element.reactivity_update_visibility();
-        }
+        
+        ids.forEach(id => {
+          let document = id.scope;
+          
+          if(document.contains(element)) {
+            //@ts-ignore
+            element.reactivity_update_visibility();
+            
+          }
+        });
+        
       });
     }
     
@@ -134,8 +152,45 @@ function handle_values(value: any) {
   
 }
 
+///Stores
+const stores: {storeID: String, proxy: any}[] = [];
 
-export const generateUuid = () => {
+export function createStore(id: String, v: any) {
+  if (!v.isProxy) {
+    try {
+      v = ref(v)
+    } catch (e){
+      throw new Error(e as string);
+    }    
+  }
+
+  stores.push({
+    storeID: id,
+    proxy: v
+  });
+
+  return v;
+}
+
+export function getStore(id: String, elementID: string, scope: HTMLElement) {
+  //Get store with id and add ElementID to ids to be watched when changing value
+  let store = stores.filter((s) => {
+    return s.storeID === id
+  })[0]
+
+  if (store) {
+    store.proxy.add_element_id_to_update(elementID, scope);
+    store.proxy.force_update();
+    return store.proxy;
+  }
+  
+  console.error(`Could not find registered store with identifier ${id}`);
+
+  return null;
+}
+
+///UUID
+const generateUuid = () => {
   return (
       String('xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx')
   ).replace(/[xy]/g, (character) => {

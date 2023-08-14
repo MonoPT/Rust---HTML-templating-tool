@@ -1,5 +1,5 @@
 <template>
-    <div id="modal">
+    <div id="modal" v-show="user.value.length === 0">
         <div class="left">
             <wc-login-form></wc-login-form>
         </div>
@@ -7,10 +7,25 @@
 
         </div>
     </div>
+
+    <div id="logged" v-show="user.value.length > 0">
+        <div class="left">
+            <h1>Olá {{ user }}</h1>
+            <button @click="logout()">Logout</button>
+        </div>
+        
+    </div>
 </template>
 
+<script>
+    const user = getStore("userName");
+
+    const logout = () => user.value = "";
+
+</script>
+
 <style>
-    #modal {
+    #modal, #logged {
         display: flex;
         flex-direction: row;
         min-width: 100px;
