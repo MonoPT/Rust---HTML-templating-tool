@@ -1,7 +1,7 @@
 <template>
     <div id="form-container">
         <div class="wrapper">
-            <h1>Bem-vindo de volta, {{ nome }}</h1>
+            <h1>Bem-vindo de volta. {{ 2 * 5 }}</h1>
             <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Obcaecati sint fugit reprehenderit.</p>
             <form action="" onsubmit="event.preventDefault()">
                 <span>Endereço de E-mail</span>
@@ -17,6 +17,7 @@
                     <div class="btn-container">
                         <button @click="fakeLogin()">Login</button>
                     </div>
+                    
                 </div>
             </form>
             
@@ -25,6 +26,8 @@
 </template>
 
 <script>
+    //let string = "da";
+
     const toggleRememberCheckbox = () => {
         let checkbox = document.querySelector(".rememberCheckBox input[type='checkbox']");
 
@@ -36,6 +39,7 @@
     }
 
     const nome = getStore("userName");
+
 
 </script>
 

@@ -43,7 +43,7 @@ pub fn generate_component(input: &str, output: &str, component_name: &str) -> Re
 
     js_vars.append(&mut js_vars_stores);
     
-    handle_template_refs(&mut template, &js_vars);
+    handle_template_refs(&mut template, &mut javascript, &js_vars);
 
     handle_events(&mut template, &mut javascript);
 

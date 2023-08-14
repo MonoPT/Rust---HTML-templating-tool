@@ -102,7 +102,7 @@ struct TemplateRefs {
     end: usize
 }
 
-pub fn handle_template_refs(string: &mut String, vars: &Vec<Variables>) {
+pub fn handle_template_refs(string: &mut String, javascript: &mut String,vars: &Vec<Variables>) {
     let padrao = r"\{\{([^}]+)\}\}";
     let regex = Regex::new(padrao).unwrap();
 
@@ -133,7 +133,7 @@ pub fn handle_template_refs(string: &mut String, vars: &Vec<Variables>) {
 
         let mut dyn_prop = var.join(".");
 
-        let mut id = String::new();
+        let mut id: String = Uuid::new_v4().to_string();
 
         for var in vars {
             let s1 = String::from(&var.var_name);
@@ -152,6 +152,14 @@ pub fn handle_template_refs(string: &mut String, vars: &Vec<Variables>) {
         let new_val = format!("<span style='all: unset' class='reactive-el-{}' dynproperty='{}'>{}</span>", id, dyn_prop, format!("{} {} {}", "{", &item.value, "}"));
 
         *string = format!("{} {} {}", prefix, new_val, suffix);
+
+        let expression_evaluator_fallback = format!("
+            if(document.contains(document.querySelector('.reactive-el-{}')) && !document.querySelector('.reactive-el-{}').hasAttribute('DynVarTracked')) {{
+                document.querySelector('.reactive-el-{}').textContent = {}
+            }}
+        ",id, id,id, &item.value);
+
+        *javascript = format!("{};{}", javascript, expression_evaluator_fallback);
     }
     
 }

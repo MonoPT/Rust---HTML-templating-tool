@@ -114,6 +114,7 @@ function UpdateValuesOnScreen(ids: id_type[], value: any, onUpdateFunctions: Fun
 
       element.textContent = JSON.stringify(value)      
     } finally {
+      //Handle conditional visibility
       (HtmlElementsToUpdate as HTMLElement[]).forEach(element => {
         
         ids.forEach(id => {
@@ -122,11 +123,20 @@ function UpdateValuesOnScreen(ids: id_type[], value: any, onUpdateFunctions: Fun
           if(document.contains(element)) {
             //@ts-ignore
             element.reactivity_update_visibility();
-            
           }
         });
+
+        
         
       });
+
+      //Marked as being tracked by library
+      (async () => {
+        elements.forEach(element => {
+          element.setAttribute("DynVarTracked", "true");
+        });
+      })();
+      
     }
     
     
