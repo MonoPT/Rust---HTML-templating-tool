@@ -8,7 +8,7 @@ use regex::Regex;
 
 use grass;
 
-use utils::regex::{match_tag, handle_refs, handle_template_refs, handle_events, handle_visibility};
+use utils::regex::{match_tag, handle_refs, handle_template_refs, handle_events, handle_visibility, handle_model};
 use utils::io::{read_file_as_string, create_and_save_file};
 use utils::transpile::transpile_typescript;
 
@@ -49,6 +49,7 @@ pub fn generate_component(input: &str, output: &str, component_name: &str) -> Re
 
     handle_visibility(&mut template, &mut javascript);
 
+    handle_model(&mut template, &mut javascript);
     
 
     //

@@ -336,3 +336,92 @@ fn find_variables_in_js(input: &str) -> Vec<String> {
 
     variables
 }
+
+// Handle v-model
+
+pub fn handle_model(template_string: &mut String, script_string: &mut String) {
+    let mut visibility: Vec<EventMatch> = vec![];
+    
+    let re = regex_find_attribute_in_tag("v-model");
+    for mat in re.find_iter(template_string) {        
+        visibility.push(EventMatch { start: mat.start(), end: mat.end() });
+    } 
+
+    visibility.reverse();
+
+    
+
+    for v in visibility {
+        let original_tag = get_slice(&template_string, v.start, v.end).unwrap();
+        let mut expression = String::new();
+        let mut var = String::new();
+
+        let re = Regex::new(r#"v-model="([^"]+)""#).unwrap();
+        if let Some(captura) = re.captures(original_tag) {
+            if let Some(f) = captura.get(0) {
+                let s = &f.as_str().trim();
+                var = s[9..s.len() - 1].to_string();
+            }
+
+            if let Some(f) = captura.get(1) {
+                let f = &f.as_str().trim();
+                expression += &f[0..f.len() - 1];
+            }
+        }
+
+        let id_n = Uuid::new_v4();
+        let id = format!("reactivity-model-{}", id_n);
+
+        let tag = re.replace(original_tag, " ");
+
+        let mut classes = String::new();
+
+        let re = Regex::new(r#"class="([^"]+)""#).unwrap();
+
+        for capture in re.captures_iter(&tag) {
+            classes += &format!(" {}", &capture[1]);
+        }
+
+        classes += &format!(" {}", &id);
+
+        let re = Regex::new(r"\s").unwrap();
+        let tag = re.replace(&tag, format!(" class='{}' ", classes.trim()));
+
+        let prefix = &template_string[..v.start];
+        let suffix = &template_string[v.end..];
+
+        *template_string = format!("{}{}{}",prefix, tag, suffix);
+
+        
+        *script_string += &format!("
+            if(document.contains(document.querySelector('.{}'))) {{
+                let el = document.querySelector('.{}');
+
+                if(['INPUT', 'SELECT', 'TEXTAREA'].includes(el.tagName)) {{
+
+                    if (typeof {} === 'object' && {}.isProxy) {{
+                        if ({}.value?.length > 0) el.value = {}.value;
+
+                        {}.value = el.value; 
+                        {}.reactivity_register_model('{}', document_fragment_RL_M_)
+                    }} else {{
+                        
+                        {} = el.value;
+                    }}
+
+                    el.addEventListener('input', () => {{
+                        if (typeof {} === 'object' && {}.isProxy) {{
+                            
+                            {}.value = el.value; 
+                        }} else {{
+                            {} = el.value;
+                        }}
+                    }})
+                }}
+
+
+        
+            }}
+        ", id, id, var, var, var, var, var, var, id, var, var, var, var, var);
+    }
+}

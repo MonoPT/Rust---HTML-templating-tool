@@ -12,6 +12,31 @@
         <div class="left">
             <h1>Olá {{ user }}</h1>
             <button @click="logout()">Logout</button>
+
+            <br>
+            <br>
+            <form action="">
+                <input type="text" v-model="user">
+                {{ user }}
+
+                <br><br>
+                <input type="text" v-model="inputText">
+                {{ inputText }}
+
+                <br><br>
+                <textarea v-model="input"></textarea>
+                {{ input }}
+
+                <br><br>
+                <select name="" id="" v-model="option">
+                    <option value="opcao 1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                </select>
+                {{ option }}
+
+            </form>
         </div>
         
     </div>
@@ -19,9 +44,17 @@
 
 <script>
     const user = getStore("userName");
+    const input= ref("teste de texarea");
+    const inputText = ref(null);
+    const option = ref('3');
 
     const logout = () => user.value = "";
 
+ 
+
+    setInterval(function(){ 
+        input.value = input.value.toUpperCase();
+    }, 5000);
 </script>
 
 <style>

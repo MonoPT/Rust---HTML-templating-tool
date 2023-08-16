@@ -9,6 +9,7 @@ export function ref(value: any, id?: string, scope?: HTMLElement) {
   }
 
   const ids: id_type[] = [];
+  const models: id_type[] = [];
 
   if (id && scope) {
     ids.push({
@@ -39,7 +40,7 @@ export function ref(value: any, id?: string, scope?: HTMLElement) {
     set: function(obj, prop, value) {
       //@ts-ignore
       let r = Reflect.set(...arguments)
-      UpdateValuesOnScreen(ids, target, onUpdateFunctions, HtmlElementsToUpdate)
+      UpdateValuesOnScreen(ids, target, onUpdateFunctions, HtmlElementsToUpdate, models)
             
       return r
     }
@@ -75,14 +76,21 @@ export function ref(value: any, id?: string, scope?: HTMLElement) {
     });
   }
 
-  proxy.force_update = () => UpdateValuesOnScreen(ids, target, onUpdateFunctions, HtmlElementsToUpdate);
+  proxy.reactivity_register_model = function(id: string, scope: HTMLElement) {
+    models.push({
+      id,
+      scope: scope.shadowRoot as ShadowRoot
+    });
+  }
 
-  UpdateValuesOnScreen(ids, target, onUpdateFunctions, HtmlElementsToUpdate);
+  proxy.force_update = () => UpdateValuesOnScreen(ids, target, onUpdateFunctions, HtmlElementsToUpdate, models);
+
+  UpdateValuesOnScreen(ids, target, onUpdateFunctions, HtmlElementsToUpdate, models);
 
   return proxy
 }
 
-function UpdateValuesOnScreen(ids: id_type[], value: any, onUpdateFunctions: Function[], HtmlElementsToUpdate: any) {
+function UpdateValuesOnScreen(ids: id_type[], value: any, onUpdateFunctions: Function[], HtmlElementsToUpdate: any, models: id_type[]) {
   let elements: Element[] = [];
 
   ids.forEach(element => {
@@ -90,7 +98,7 @@ function UpdateValuesOnScreen(ids: id_type[], value: any, onUpdateFunctions: Fun
     
     let els = Array.from(document.querySelectorAll(`.reactive-el-${element.id}`));
     elements = [...elements, ...els];
-  });
+  });  
 
 
   elements.forEach(element => {
@@ -101,7 +109,8 @@ function UpdateValuesOnScreen(ids: id_type[], value: any, onUpdateFunctions: Fun
 
       if (typeof value[property] === "object") element.textContent = JSON.stringify(ev)
       else element.textContent = `${ev}`
-    } catch {
+    } catch (e) {
+      console.error(e)
       if(Object.keys(value).length === 1 && Object.keys(value)[0] === "value") {
         if(typeof value.value !== "object") {
           element.textContent = value.value
@@ -125,9 +134,6 @@ function UpdateValuesOnScreen(ids: id_type[], value: any, onUpdateFunctions: Fun
             element.reactivity_update_visibility();
           }
         });
-
-        
-        
       });
 
       //Marked as being tracked by library
@@ -138,6 +144,23 @@ function UpdateValuesOnScreen(ids: id_type[], value: any, onUpdateFunctions: Fun
       })();
       
     }
+
+
+    //Update models on screen
+    (async () => {
+      models.forEach(model => {
+        let document = model.scope;
+        
+        let el = document.querySelector(`.${model.id}`) as HTMLInputElement;
+
+        if(el && document.contains(el) && el.value !== value.value) {
+          el.value = value.value;
+        }
+
+      });
+    })();
+
+    
     
     
   });
@@ -153,7 +176,7 @@ function OnUpdate(onUpdateFunctions: Function[]) {
 
 
 function handle_values(value: any) {
-  if(typeof value !== "object") {
+  if(typeof value !== "object" || value === null) {
     return {
       value
     }

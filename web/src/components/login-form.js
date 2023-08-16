@@ -10,7 +10,7 @@ class MyCustomElement extends HTMLElement {
         ;this.shadow.innerHTML = `
     <div id="form-container">
         <div class="wrapper">
-            <h1>Bem-vindo de volta.  <span style='all: unset' class='reactive-el-b3ddc18b-56dd-4e0d-babd-206dc5038a72' dynproperty='value'>{  2 * 5  }</span> </h1>
+            <h1>Bem-vindo de volta.  <span style='all: unset' class='reactive-el-fb264552-ddaa-44fe-9387-e4dbf8d1c52c' dynproperty='value'>{  2 * 5  }</span> </h1>
             <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Obcaecati sint fugit reprehenderit.</p>
             <form action="" onsubmit="event.preventDefault()">
                 <span>Endereço de E-mail</span>
@@ -20,11 +20,11 @@ class MyCustomElement extends HTMLElement {
                 <input type="password" name="" id="" placeholder="">
 
                 <div class="group-flex">
-                    <div class=' group rememberCheckBox reactive-event-c5681034-ca68-43c4-a11b-1e8035279bcb'    >
+                    <div class=' group rememberCheckBox reactive-event-b94cdaba-9080-4efc-b174-ef830c75ed55'    >
                         <input type="checkbox" style="pointer-events: none;"><span>Manter sessão iniciada</span>
                     </div>
                     <div class="btn-container">
-                        <button class=' reactive-event-5b7761eb-22e8-44c0-8d69-d7bc4f9266f9'  >Login</button>
+                        <button class=' reactive-event-1f853d6a-abbe-44b6-902d-d3b6759fb10f'  >Login</button>
                     </div>
                     
                 </div>
@@ -174,14 +174,14 @@ p {
     checkbox.checked = !checkbox.checked;
 };
 var fakeLogin = function () {
-    nome.value = "Rodrigo";
+    nome.value = "User";
 };
- var nome = getStore("userName", '66ad318b-c22b-41d0-bef1-5b33dbc61d44', document_fragment_RL_M_) ;
+ var nome = getStore("userName", '7d15a346-ab82-44b6-9b2d-f7d07d9b3a3c', document_fragment_RL_M_) ;
 ;
-            if(document.contains(document.querySelector('.reactive-el-b3ddc18b-56dd-4e0d-babd-206dc5038a72')) && !document.querySelector('.reactive-el-b3ddc18b-56dd-4e0d-babd-206dc5038a72').hasAttribute('DynVarTracked')) {
-                document.querySelector('.reactive-el-b3ddc18b-56dd-4e0d-babd-206dc5038a72').textContent =  2 * 5 
+            if(document.contains(document.querySelector('.reactive-el-fb264552-ddaa-44fe-9387-e4dbf8d1c52c')) && !document.querySelector('.reactive-el-fb264552-ddaa-44fe-9387-e4dbf8d1c52c').hasAttribute('DynVarTracked')) {
+                document.querySelector('.reactive-el-fb264552-ddaa-44fe-9387-e4dbf8d1c52c').textContent =  2 * 5 
             }
-        if(document.contains(document.querySelector('.reactive-event-5b7761eb-22e8-44c0-8d69-d7bc4f9266f9'))) { document.querySelector('.reactive-event-5b7761eb-22e8-44c0-8d69-d7bc4f9266f9').addEventListener('click', function() { fakeLogin(); } ) }if(document.contains(document.querySelector('.reactive-event-c5681034-ca68-43c4-a11b-1e8035279bcb'))) { document.querySelector('.reactive-event-c5681034-ca68-43c4-a11b-1e8035279bcb').addEventListener('click', function() { toggleRememberCheckbox(); } ) };
+        if(document.contains(document.querySelector('.reactive-event-1f853d6a-abbe-44b6-902d-d3b6759fb10f'))) { document.querySelector('.reactive-event-1f853d6a-abbe-44b6-902d-d3b6759fb10f').addEventListener('click', function() { fakeLogin(); } ) }if(document.contains(document.querySelector('.reactive-event-b94cdaba-9080-4efc-b174-ef830c75ed55'))) { document.querySelector('.reactive-event-b94cdaba-9080-4efc-b174-ef830c75ed55').addEventListener('click', function() { toggleRememberCheckbox(); } ) };
     }
 }
 
